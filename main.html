@@ -60,13 +60,13 @@
       function initMap() {
         map = new google.maps.Map(document.getElementById("map"), {
           zoom: 17,
-          center: { lat: 51.5033, lng: -0.1195 },
+          center: { lat: 51.5033, lng: -0.1195 }, // centered in london for jokes (theres no war in there)
         });
 
         polyline = new google.maps.Polyline({
           map: map,
           path: [],
-          strokeColor: "#FF0000",
+          strokeColor: "#FF0000", // route planning
           strokeOpacity: 1.0,
           strokeWeight: 2,
         });
@@ -74,7 +74,7 @@
         map.addListener("click", (e) => {
           const lat = e.latLng.lat();
           const lng = e.latLng.lng();
-          const waypoint = { lat: parseFloat(lat.toFixed(6)), lon: parseFloat(lng.toFixed(6)) };
+          const waypoint = { lat: parseFloat(lat.toFixed(6)), lon: parseFloat(lng.toFixed(6)) }; // 6 dp for the precision of the hovercraft blah blahb lawdkakdij
           waypoints.push(waypoint);
           polyline.getPath().push(e.latLng);
           const marker = new google.maps.Marker({ position: e.latLng, map: map });
