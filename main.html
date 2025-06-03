@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Hovercraft Route Planner</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAmvRfbwcUMAiXPgoqXTZc2PLApJipCi7Q"></script>
+    <style>
+      html, body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        font-family: Arial, sans-serif;
+      }
+      #map {
+        height: 90%;
+        width: 100%;
+      }
+      #controls {
+        height: 10%;
+        padding: 10px;
+        background-color: #f1f1f1;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      button {
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
+      }
+      #waypoint-list {
+        max-height: 80px;
+        overflow-y: auto;
+        margin-left: 20px;
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="controls">
+      <div>
+        <span>Click on the map to set waypoints.</span>
+        <div id="waypoint-list"></div>
+      </div>
+      <div>
+        <button onclick="undoLastWaypoint()">Undo Last</button>
+        <button onclick="clearWaypoints()">Clear All</button>
+        <button onclick="downloadWaypoints()">Download (JSON)</button>
+      </div>
+    </div>
+    <div id="map"></div>
+
+    <script>
+      let map;
+      let waypoints = [];
+      let polyline;
+      let markers = [];
+
+      function initMap() {
+        map = new google.maps.Map(document.getElementById("map"), {
+          zoom: 17,
+          center: { lat: 51.5033, lng: -0.1195 },
+        });
+
+        polyline = new google.maps.Polyline({
+          map: map,
+          path: [],
+          strokeColor: "#FF0000",
+          strokeOpacity: 1.0,
+          strokeWeight: 2,
+        });
+
+        map.addListener("click", (e) => {
+          const lat = e.latLng.lat();
+          const lng = e.latLng.lng();
+          const waypoint = { lat: parseFloat(lat.toFixed(6)), lon: parseFloat(lng.toFixed(6)) };
+          waypoints.push(waypoint);
+          polyline.getPath().push(e.latLng);
+          const marker = new google.maps.Marker({ position: e.latLng, map: map });
+          markers.push(marker);
+          updateWaypointList();
+        });
+      }
+
+      function updateWaypointList() {
+        const listDiv = document.getElementById("waypoint-list");
+        listDiv.innerHTML = waypoints.map((wp, i) => `#${i+1}: (${wp.lat}, ${wp.lon})`).join("<br>");
+      }
+
+      function undoLastWaypoint() {
+        if (waypoints.length === 0) return;
+        waypoints.pop();
+        polyline.getPath().pop();
+        const marker = markers.pop();
+        marker.setMap(null);
+        updateWaypointList();
+      }
+
+      function clearWaypoints() {
+        waypoints = [];
+        polyline.setPath([]);
+        markers.forEach(m => m.setMap(null));
+        markers = [];
+        updateWaypointList();
+      }
+
+      function downloadWaypoints() {
+        if (waypoints.length === 0) {
+          alert("No waypoints to download.");
+          return;
+        }
+        const blob = new Blob([JSON.stringify(waypoints, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "waypoints.json";
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+
+      window.onload = initMap;
+    </script>
+  </body>
+</html>
